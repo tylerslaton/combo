@@ -56,8 +56,19 @@ type CombinationSpec struct {
 	Template string `json:"template"`
 
 	// Arguments contains the list of values to use for each parameter in the combination.
-	// +kubebuilder:validation:MinProperties:=1
-	Arguments map[string][]string `json:"arguments,omitempty"`
+	// +kubebuilder:validation:MinItems:=1
+	Arguments []Argument `json:"arguments,omitempty"`
+}
+
+// CombinationSpec defines arguments that replace parameters within the given template
+type Argument struct {
+	// TODO: validation?
+	// Key defines what is going to be replaced in the template
+	Key string `json:"key"`
+
+	// Values defines the options to replace the defined key
+	// +kubebuilder:validation:MinItems:=1
+	Values []string `json:"values"`
 }
 
 // CombinationStatus defines the observed state of Combination
