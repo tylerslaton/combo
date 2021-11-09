@@ -38,6 +38,7 @@ lint: ## Run golangci-lin
 verify: tidy generate format lint ## Verify the current code generation and lint
 	git diff --exit-code
 
+# TODO: Disable CGO? Define specific tags? Do a from-scratch and copy pre-built binary. Static vs Dynamic linking
 build:
 	$(Q)go build -o bin/combo
 
@@ -50,6 +51,14 @@ test: test-unit ## Run the tests
 
 test-unit: ## Run the unit tests
 	$(Q)go test -count=1 -short ./...
+
+install: generate
+	kubectl apply -f manifests/crds && kubectl apply -f manifests/deploy
+
+uninstall:
+	kubectl delete -f manifests/deploy && kubectl delete -f manifests/crds
+
+reinstall: uninstall install
 
 # Binary builds
 GO_BUILD := $(Q)go build

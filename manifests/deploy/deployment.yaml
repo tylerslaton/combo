@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: combo
+  name: combo-deployment
+  labels:
+    app: combo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: combo
+  template:
+    metadata:
+      labels:
+        app: combo
+    spec:
+      serviceAccountName: combo-account
+      containers:
+      - name: combo
+        image: tytest:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
