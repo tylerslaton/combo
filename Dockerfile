@@ -1,5 +1,5 @@
-FROM golang:1.17-buster AS builder
+FROM golang:1.17
 WORKDIR /
 COPY . .
-RUN make build
+RUN make build-cli
 CMD ./bin/combo run

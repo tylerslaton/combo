@@ -39,8 +39,15 @@ verify: tidy generate format lint ## Verify the current code generation and lint
 	git diff --exit-code
 
 # TODO: Disable CGO? Define specific tags? Do a from-scratch and copy pre-built binary. Static vs Dynamic linking
-build:
+build-cli:
 	$(Q)go build -o bin/combo
+
+# TODO: Version container
+build-container: build-cli
+	docker build . --tag=quay.io/operator-framework/combo
+
+load-container: build-container
+	kind load docker-image quay.io/operator-framework/combo
 
 CONTROLLER_GEN=$(Q)go run sigs.k8s.io/controller-tools/cmd/controller-gen
 
@@ -55,10 +62,14 @@ test-unit: ## Run the unit tests
 install: generate
 	kubectl apply -f manifests/crds && kubectl apply -f manifests/deploy
 
+install-fresh: generate load-container install
+
 uninstall:
 	kubectl delete -f manifests/deploy && kubectl delete -f manifests/crds
 
 reinstall: uninstall install
+
+reinstall-fresh: uninstall install-fresh
 
 # Binary builds
 GO_BUILD := $(Q)go build
