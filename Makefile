@@ -56,5 +56,13 @@ test: test-unit ## Run the tests
 test-unit: ## Run the unit tests
 	$(Q)go test -count=1 -short ./...
 
+install: generate
+	kubectl apply -f manifests/crds && kubectl apply -f manifests/deploy
+
+uninstall:
+	kubectl delete -f manifests/deploy && kubectl delete -f manifests/crds
+
+reinstall: uninstall install
+
 # Binary builds
 GO_BUILD := $(Q)go build
