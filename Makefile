@@ -38,8 +38,8 @@ lint: ## Run golangci-lin
 verify: tidy generate format lint ## Verify the current code generation and lint
 	git diff --exit-code
 
-build-cli:
-	$(Q)go build -o combo
+build:
+	$(Q)go build -o bin/combo
 
 CONTROLLER_GEN=$(Q)go run sigs.k8s.io/controller-tools/cmd/controller-gen
 
