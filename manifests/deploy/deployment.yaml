@@ -2,20 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: combo
-  name: combo-deployment
+  name: combo-operator
   labels:
     app: combo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: combo
+      app: combo-operator
   template:
     metadata:
       labels:
-        app: combo
+        app: combo-operator
     spec:
-      serviceAccountName: combo-account
+      serviceAccountName: combo-operator
       containers:
       - name: combo
         image: quay.io/operator-framework/combo:latest

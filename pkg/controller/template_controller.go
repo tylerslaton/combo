@@ -15,7 +15,6 @@ import (
 
 type templateController struct {
 	client.Client
-
 	log logr.Logger
 }
 

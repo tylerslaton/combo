@@ -60,7 +60,7 @@ type CombinationSpec struct {
 	Arguments []Argument `json:"arguments,omitempty"`
 }
 
-// CombinationSpec defines arguments that replace parameters within the given template
+// Argument defines a key and values for it that will be replaced in a template
 type Argument struct {
 	// TODO: validation?
 	// Key defines what is going to be replaced in the template

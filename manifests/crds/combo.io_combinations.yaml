@@ -43,7 +43,7 @@ spec:
                   type: array
                   minItems: 1
                   items:
-                    description: CombinationSpec defines arguments that replace parameters within the given template
+                    description: Argument defines a key and values for it that will be replaced in a template
                     type: object
                     required:
                       - key

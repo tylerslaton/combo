@@ -42,16 +42,9 @@ build-cli: ## Build the CLI binary
 	$(Q)go build -a -o ./bin/combo
 
 IMAGE_REPO=quay.io/operator-framework/combo
-IMAGE_TAG=dev
+IMAGE_TAG=latest
 build-container: ## Build the Combo container. Accepts IMAGE_REPO and IMAGE_TAG overrides.
 	docker build . -f Dockerfile -t $(IMAGE_REPO):$(IMAGE_TAG)
-
-# TODO: Version container
-build-container: build-cli
-	docker build . --tag=quay.io/operator-framework/combo
-
-load-container: build-container
-	kind load docker-image quay.io/operator-framework/combo
 
 CONTROLLER_GEN=$(Q)go run sigs.k8s.io/controller-tools/cmd/controller-gen
 
@@ -63,17 +56,8 @@ test: test-unit ## Run the tests
 test-unit: ## Run the unit tests
 	$(Q)go test -count=1 -short ./...
 
-install: generate
+deploy: generate
 	kubectl apply -f manifests/crds && kubectl apply -f manifests/deploy
-
-install-fresh: generate load-container install
-
-uninstall:
-	kubectl delete -f manifests/deploy && kubectl delete -f manifests/crds
-
-reinstall: uninstall install
-
-reinstall-fresh: uninstall install-fresh
 
 # Binary builds
 GO_BUILD := $(Q)go build
