@@ -1,12 +1,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: olm-operator-binding-olm
+  name: combo-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: system:controller:combo
+  name: combo-operator
 subjects:
 - kind: ServiceAccount
-  name: combo-account
+  name: combo-operator
   namespace: combo
