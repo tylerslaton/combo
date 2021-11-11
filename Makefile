@@ -24,16 +24,16 @@ help: ## Show this help screen
 PKGS = $(shell go list ./...)
 
 tidy: ## Update dependencies
-	$(Q)go mod tidy
+	time go mod tidy
 
 generate: ## Generate code and manifests
-	$(Q)go generate ./...
+	time go generate ./...
 
 format: ## Format the source code
-	$(Q)go fmt ./...
+	time go fmt ./...
 
 lint: ## Run golangci-lint
-	$(Q)go run github.com/golangci/golangci-lint/cmd/golangci-lint run
+	time go run github.com/golangci/golangci-lint/cmd/golangci-lint run
 
 verify: tidy generate format lint ## Verify the current code generation and lint
 	git diff --exit-code
