@@ -17,12 +17,17 @@ jobs:
         go-version: '~1.17'
     - name: Install kind
       run: |
-        curl -sLo kind "$(curl -sL https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq -r '[.assets[] | select(.name == "kind-linux-amd64")] | first | .browser_download_url')"
+        curl -sLo kind "$(curl -sL https://api.github.com/repos/kubernetes-sigs/kind/releases/43733955 | jq -r '[.assets[] | select(.name == "kind-linux-amd64")] | first | .browser_download_url')"
         chmod +x kind
         sudo mv kind /bin/
     - name: Create kind cluster
       run: |
+        kind version
         kind create cluster
         kind export kubeconfig
+    - name: Install Ginkgo
+      run: |
+        go get github.com/onsi/ginkgo/ginkgo@v1.16.4
+        go install github.com/onsi/ginkgo/ginkgo@v1.16.4
     - name: Run e2e tests
       run: make run-e2e

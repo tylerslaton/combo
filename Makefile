@@ -1,14 +1,15 @@
 ###########################
 # Configuration Variables #
 ###########################
-ORG := github.com/operator-framework
-PKG := $(ORG)/combo
+PKG := $(shell head -n 1 go.mod | awk '{print $$2}')
 VERSION_PATH := $(PKG)/pkg/version
 GIT_COMMIT := $(shell git rev-parse HEAD)
 DEFAULT_VERSION := v0.0.1
-CONTROLLER_GEN=$(Q)go run sigs.k8s.io/controller-tools/cmd/controller-gen
+CONTROLLER_GEN := $(Q)go run sigs.k8s.io/controller-tools/cmd/controller-gen
 GO_BUILD := $(Q)go build
-PKGS = $(shell go list ./...)
+PKGS := $(shell go list ./...)
+COMBO_VERSION := $(shell git describe || echo $(DEFAULT_VERSION))
+
 
 # Binary build options
 KUBERNETES_VERSION=v0.22.2
@@ -62,16 +63,15 @@ lint: ## Run golangci-lint
 verify: tidy generate format lint ## Verify the current code generation and lint
 	git diff --exit-code
 
-COMBO_VERSION=$(shell git describe || echo $(DEFAULT_VERSION))
-BUILD_FLAGS=CGO_ENABLED=0
 VERSION_FLAGS=-ldflags "-X $(VERSION_PATH).GitCommit=$(GIT_COMMIT) -X $(VERSION_PATH).ComboVersion=$(COMBO_VERSION) -X $(VERSION_PATH).KubernetesVersion=$(KUBERNETES_VERSION)"
 build-cli: ## Build the CLI binary. Speciy VERSION_PATH, GIT_COMMIT, or KUBERNETES_VERSION to change the binary version.
-	$(Q) $(BUILD_FLAGS) go build $(VERSION_FLAGS) -o ./bin/combo
+	$(Q) CGO_ENABLED=0 go build $(VERSION_FLAGS) -o ./bin/combo
 
 build-container: ## Build the Combo container. Accepts IMAGE_REPO and IMAGE_TAG overrides.
 	docker build . -f Dockerfile -t $(IMAGE)
 
-build-local-container: build-cli ## Build the Combo container from the Dockerfile.local to speed compile time up. Accepts IMAGE_REPO and IMAGE_TAG overrides.
+build-local-container: ## Build the Combo container from the Dockerfile.local to speed compile time up. Accepts IMAGE_REPO and IMAGE_TAG overrides.
+	$(Q) CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(VERSION_FLAGS) -o ./bin/combo
 	docker build . -f Dockerfile.local -t $(IMAGE)
 
 ################
@@ -86,29 +86,29 @@ test-unit: ## Run the unit tests
 	$(Q)go test -count=1 -short $(UNIT_TEST_DIRS)
 
 test-e2e: ## Run the e2e tests
-	$(Q)go test -count=1 ./test/e2e
+	ginkgo test ./test/e2e
 
 ###################
 # Running Targets #
 ###################
 .PHONY: deploy teardown run run-local run-e2e run-e2e-local
+
+IMAGE_LOAD_COMMAND=kind load docker-image
+load-image: ## Load-image loads the currently constructed image onto the cluster
+	$(IMAGE_LOAD_COMMAND) $(IMAGE)
+
 deploy: generate ## Deploy the Combo operator to the current cluster
+	kubectl apply --recursive -f manifests
+
+deploy-local: generate ## Deploy the Combo operator to the current cluster
 	kubectl apply --recursive -f manifests
 
 teardown: ## Teardown the Combo operator to the current cluster
 	kubectl delete --recursive -f manifests
 
-IMAGE_LOAD_COMMAND=kind load docker-image
-run: build-container ## Run Combo on local cluster
-	$(IMAGE_LOAD_COMMAND) $(IMAGE)
-	$(MAKE) deploy
+run: build-container load-image deploy ## Run Combo on local cluster
 
-LOCAL_CONTAINER_OS=linux
-LOCAL_CONTAINER_ARCH=amd64
-run-local: ## Run Combo on local environment with Dockerfile.local for faster deployment
-	$(MAKE) GOOS=$(LOCAL_CONTAINER_OS) GOARCH=$(LOCAL_CONTAINER_ARCH) build-local-container
-	$(IMAGE_LOAD_COMMAND) $(IMAGE)
-	$(MAKE) deploy
+run-local: build-local-container load-image deploy ## Run Combo on local environment with Dockerfile.local for faster deployment
 
 run-e2e: run test-e2e ## Run Combo and trigger the e2e tests for it
 
